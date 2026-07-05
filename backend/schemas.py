@@ -15,6 +15,8 @@ class PatchSummary(BaseModel):
     healthy_area: float  # percentage
     unhealthy_area: float  # percentage
     average_confidence: float
+    analyzed_count: int  # patches that went to the model
+    skipped_count: int   # patches dropped as 100% transparent background
 
 class DetectionResult(BaseModel):
     is_leaf: bool
@@ -26,6 +28,7 @@ class DetectionResult(BaseModel):
     severity: Literal["None", "Low", "Medium", "High", "Critical"]
     patches: List[Patch]
     patch_summary: PatchSummary
+    processed_image_base64: Optional[str] = None
     message: Optional[str] = None
 
 class LeafValidationResult(BaseModel):

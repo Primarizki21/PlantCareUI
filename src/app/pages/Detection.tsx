@@ -188,7 +188,14 @@ export function Detection() {
           )}
 
           {pageState === "result" && result && (
-            <LeafResultCard result={result} imageUrl={uploadedImage!} />
+            <LeafResultCard
+              result={result}
+              imageUrl={
+                result.processed_image_base64
+                  ? `data:image/png;base64,${result.processed_image_base64}`
+                  : uploadedImage!
+              }
+            />
           )}
 
           {pageState === "idle" && (

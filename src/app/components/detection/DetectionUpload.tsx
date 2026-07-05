@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Upload, Camera, Loader2, Activity } from "lucide-react";
+import { CameraCapture } from "./CameraCapture";
 
 const PLANT_OPTIONS = [
   "Rice",
@@ -54,6 +55,7 @@ export function DetectionUpload({
   onRegisterTrigger,
 }: DetectionUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   // Register the file picker trigger with the parent on mount
   useEffect(() => {
@@ -132,7 +134,15 @@ export function DetectionUpload({
             onChange={handleFileInput}
           />
 
-          {uploadedImage ? (
+          {cameraOpen ? (
+            <CameraCapture
+              onCapture={(file) => {
+                setCameraOpen(false);
+                onFile(file);
+              }}
+              onCancel={() => setCameraOpen(false)}
+            />
+          ) : uploadedImage ? (
             <div className="space-y-4">
               <img
                 src={uploadedImage}
@@ -163,7 +173,7 @@ export function DetectionUpload({
                   <Upload className="mr-2 h-4 w-4" />
                   Browse Files
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setCameraOpen(true)}>
                   <Camera className="mr-2 h-4 w-4" />
                   Take Photo
                 </Button>
