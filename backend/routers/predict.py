@@ -24,16 +24,16 @@ def open_upload_image(contents: bytes) -> Image.Image:
         raise ValueError("Invalid or corrupted image file.") from exc
     return image
 
-def flatten_rgba_to_rgb(rgba_image: Image.Image, bg=(255, 255, 255)) -> Image.Image:
-    """Composite an RGBA image onto a solid background to get RGB."""
-    background = Image.new("RGB", rgba_image.size, bg)
-    background.paste(rgba_image, mask=rgba_image.split()[3])
-    return background
-
 def pil_to_base64_png(image: Image.Image) -> str:
     buf = io.BytesIO()
     image.save(buf, format="PNG", optimize=True)
     return base64.b64encode(buf.getvalue()).decode("ascii")
+
+def flatten_to_black(rgba: Image.Image) -> Image.Image:
+    """Composite RGBA onto solid black so transparent areas render as black."""
+    bg = Image.new("RGB", rgba.size, (0, 0, 0))
+    bg.paste(rgba, mask=rgba.split()[3])
+    return bg
 
 def calculate_severity(unhealthy_pct: float) -> str:
     if unhealthy_pct <= 2.0:
@@ -81,7 +81,9 @@ async def predict_leaf_health(
                 total_patches=0,
                 healthy_area=0.0,
                 unhealthy_area=0.0,
-                average_confidence=0.0
+                average_confidence=0.0,
+                analyzed_count=0,
+                skipped_count=0
             )
         )
 
@@ -91,12 +93,11 @@ async def predict_leaf_health(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Background removal failed: {str(e)}")
 
-    classifier_input = flatten_rgba_to_rgb(leaf_rgba)
-    processed_b64 = pil_to_base64_png(leaf_rgba)
+    processed_b64 = pil_to_base64_png(flatten_to_black(leaf_rgba))
 
-    # Step 3: Crop into 8x8 patches and classify
+    # Step 3: Crop into 8x8 patches and classify (RGBA so alpha can filter bg)
     try:
-        patches_data = classifier.classify_patches(classifier_input)
+        patches_data, analyzed_count, skipped_count = classifier.classify_patches(leaf_rgba)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Patch classification failed: {str(e)}")
         
@@ -128,7 +129,9 @@ async def predict_leaf_health(
         total_patches=total_patches,
         healthy_area=round(healthy_area, 2),
         unhealthy_area=round(unhealthy_area, 2),
-        average_confidence=round(avg_conf * 100, 2)
+        average_confidence=round(avg_conf * 100, 2),
+        analyzed_count=analyzed_count,
+        skipped_count=skipped_count
     )
     
     return DetectionResult(

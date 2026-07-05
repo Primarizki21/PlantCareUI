@@ -15,6 +15,8 @@ class PatchSummary(BaseModel):
     healthy_area: float  # percentage
     unhealthy_area: float  # percentage
     average_confidence: float
+    analyzed_count: int  # patches that went to the model
+    skipped_count: int   # patches dropped as 100% transparent background
 
 class DetectionResult(BaseModel):
     is_leaf: bool
