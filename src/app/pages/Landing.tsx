@@ -41,7 +41,7 @@ export function Landing() {
   const stats = [
     { value: "730K+", label: "Training Plant Images" },
     { value: "95%", label: "Accuracy Rate" },
-    { value: "18", label: "Plant Species" },
+    { value: "7", label: "Plant Species" },
     { value: "2", label: "Health Classes" },
   ];
 
