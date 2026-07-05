@@ -1,14 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { Button } from "../ui/button";
-import { Leaf, Menu, Moon, Sun, User, BarChart3, BookOpen, History, ScanLine, Settings } from "lucide-react";
+import { Leaf, Menu, Moon, Sun, BarChart3, History, ScanLine } from "lucide-react";
 import { useTheme } from "next-themes";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { useState } from "react";
 
@@ -20,7 +13,6 @@ export function Navbar() {
   const navItems = [
     { path: "/detection", label: "Detect", icon: ScanLine },
     { path: "/history", label: "History", icon: History },
-    { path: "/library", label: "Plant Library", icon: BookOpen },
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
   ];
 
@@ -70,37 +62,6 @@ export function Navbar() {
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {/* User Menu - Desktop */}
-          <div className="hidden md:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/login" className="cursor-pointer">
-                    Sign Out
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
           {/* Mobile Menu */}
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -129,24 +90,6 @@ export function Navbar() {
                       </Link>
                     );
                   })}
-                  <div className="h-px bg-border my-2" />
-                  <Link to="/profile" onClick={() => setMobileOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-2">
-                      <User className="h-4 w-4" />
-                      Profile
-                    </Button>
-                  </Link>
-                  <Link to="/settings" onClick={() => setMobileOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-2">
-                      <Settings className="h-4 w-4" />
-                      Settings
-                    </Button>
-                  </Link>
-                  <Link to="/login" onClick={() => setMobileOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start">
-                      Sign Out
-                    </Button>
-                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

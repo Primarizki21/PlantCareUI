@@ -1,0 +1,8 @@
+{
+  "fp32_path": "outputs/mobilenetv3_small/exported/model.onnx",
+  "int8_path": "outputs/mobilenetv3_small/exported/model_int8.onnx",
+  "fp32_size_mb": 5.807,
+  "int8_size_mb": 1.614,
+  "compression_ratio": 3.599,
+  "quant_type": "dynamic_int8"
+}
