@@ -4,6 +4,8 @@ import onnxruntime as ort
 from PIL import Image
 
 class PatchClassifier:
+    PATCH_SIZE = 128
+
     def __init__(self):
         self.session = None
         self.input_name = None
@@ -37,8 +39,9 @@ class PatchClassifier:
         self.output_name = self.session.get_outputs()[0].name
 
     def preprocess_patch(self, patch: Image.Image) -> np.ndarray:
-        # Resize to 224x224
-        patch_resized = patch.resize((224, 224), Image.Resampling.BILINEAR)
+        patch_resized = patch.resize(
+            (self.PATCH_SIZE, self.PATCH_SIZE), Image.Resampling.BILINEAR
+        )
         # Convert to numpy array of shape (3, 224, 224) and normalize to [0, 1]
         patch_np = np.array(patch_resized, dtype=np.float32).transpose(2, 0, 1) / 255.0
         # Normalize with ImageNet mean/std

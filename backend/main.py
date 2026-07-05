@@ -1,8 +1,21 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from models.leaf_validator import validator
+from models.patch_classifier import classifier
 from routers import predict
 
-app = FastAPI(title="PlantCare Leaf Health API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Load ML models once at startup — not per request."""
+    validator.load_model()
+    classifier.load_model()
+    yield
+
+
+app = FastAPI(title="PlantCare Leaf Health API", version="1.0.0", lifespan=lifespan)
 
 # Setup CORS to allow React Frontend to connect from any local port (5173, 5174, etc.)
 app.add_middleware(

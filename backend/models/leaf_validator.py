@@ -5,15 +5,17 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 class LeafValidator:
+    IMG_SIZE = 128
+
     def __init__(self):
         self.model = None
         self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((self.IMG_SIZE, self.IMG_SIZE)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
-        # Class 1 is Leaf, class 0 is Not Leaf.
-        self.leaf_class_idx = 1 
+        # ImageFolder order: leaf=0, not_leaf=1 (alphabetical)
+        self.leaf_class_idx = 0
 
     def load_model(self):
         if self.model is not None:
@@ -52,9 +54,9 @@ class LeafValidator:
             "is_leaf": is_leaf,
             "confidence": confidence,
             "message": (
-                "The uploaded image appears to contain a plant leaf." 
-                if is_leaf 
-                else "The uploaded image does not appear to contain a plant leaf. Please upload a clear image of a single leaf for analysis."
+                "The uploaded image appears to contain a plant leaf."
+                if is_leaf
+                else "The uploaded image is not a valid leaf image."
             )
         }
 

@@ -7,6 +7,20 @@ from schemas import DetectionResult, PatchSummary, LeafValidationResult, Patch
 
 router = APIRouter()
 
+NOT_LEAF_MESSAGE = "The uploaded image is not a valid leaf image."
+
+
+def open_upload_image(contents: bytes) -> Image.Image:
+    """Open and verify an uploaded image; raise ValueError on invalid data."""
+    if not contents:
+        raise ValueError("Empty file uploaded.")
+    try:
+        image = Image.open(io.BytesIO(contents))
+        image.load()
+    except Exception as exc:
+        raise ValueError("Invalid or corrupted image file.") from exc
+    return image
+
 def calculate_severity(unhealthy_pct: float) -> str:
     if unhealthy_pct <= 2.0:
         return "None"
@@ -25,11 +39,10 @@ async def predict_leaf_health(
     plant_name: str = Form("Unknown")
 ):
     try:
-        # Read image
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid image file uploaded.")
+        image = open_upload_image(contents)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
         
     # Step 1: Validate if it's a leaf
     try:
@@ -38,11 +51,11 @@ async def predict_leaf_health(
         raise HTTPException(status_code=500, detail=f"Leaf validation failed: {str(e)}")
         
     if not validation["is_leaf"]:
-        # If not leaf, return validation failed state immediately
         return DetectionResult(
             is_leaf=False,
+            message=NOT_LEAF_MESSAGE,
             plant_name=plant_name,
-            confidence=validation["confidence"] * 100,
+            confidence=round(validation["confidence"] * 100, 2),
             health_score=0.0,
             healthy_percentage=0.0,
             unhealthy_percentage=0.0,
@@ -111,19 +124,25 @@ async def predict_leaf_health(
 async def validate_leaf(file: UploadFile = File(...)):
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid image file uploaded.")
+        image = open_upload_image(contents)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
         
     try:
         validation = validator.predict(image)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Leaf validation failed: {str(e)}")
         
+    message = (
+        "The uploaded image appears to contain a plant leaf."
+        if validation["is_leaf"]
+        else NOT_LEAF_MESSAGE
+    )
+
     return LeafValidationResult(
         is_leaf=validation["is_leaf"],
         confidence=round(validation["confidence"] * 100, 2),
-        message=validation["message"]
+        message=message
     )
 
 @router.get("/health")

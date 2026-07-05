@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 class Patch(BaseModel):
     id: int
@@ -26,6 +26,7 @@ class DetectionResult(BaseModel):
     severity: Literal["None", "Low", "Medium", "High", "Critical"]
     patches: List[Patch]
     patch_summary: PatchSummary
+    message: Optional[str] = None
 
 class LeafValidationResult(BaseModel):
     is_leaf: bool
