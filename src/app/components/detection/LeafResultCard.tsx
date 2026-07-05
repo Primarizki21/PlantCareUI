@@ -30,7 +30,7 @@ export function LeafResultCard({ result, imageUrl }: LeafResultCardProps) {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    saveScan(result, imageUrl);
+    saveScan(result);
     setSaved(true);
     toast.success("Scan saved to history");
   };

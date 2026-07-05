@@ -25,7 +25,6 @@ import {
 import {
   Search,
   Download,
-  Eye,
   CheckCircle2,
   AlertCircle,
   Calendar,
@@ -205,13 +204,12 @@ export function History() {
                   <TableHead className="whitespace-nowrap">Healthy Area</TableHead>
                   <TableHead className="whitespace-nowrap">Unhealthy Area</TableHead>
                   <TableHead className="whitespace-nowrap">Health Score</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredScans.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       <Leaf className="h-8 w-8 mx-auto mb-2 opacity-40" />
                       No scans found matching your filters
                     </TableCell>
@@ -296,13 +294,6 @@ export function History() {
                         >
                           {scan.healthScore.toFixed(0)}
                         </span>
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

@@ -12,25 +12,36 @@ export interface ScanRecord {
   healthyArea: number;
   unhealthyArea: number;
   severity: DetectionResult["severity"];
-  imageUrl?: string;
   notes?: string;
 }
 
 const STORAGE_KEY = "plantcare_scan_history";
+const MAX_RECORDS = 100;
 
 function readAll(): ScanRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    const parsed = JSON.parse(raw) as ScanRecord[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const cleaned = parsed.map((r: any) => {
+      const { imageUrl, ...rest } = r;
+      return rest as ScanRecord;
+    });
+    if (cleaned.some((r, i) => "imageUrl" in parsed[i])) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned)); } catch {}
+    }
+    return cleaned;
   } catch {
     return [];
   }
 }
 
 function writeAll(records: ScanRecord[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  const trimmed = records.length > MAX_RECORDS
+    ? records.slice(0, MAX_RECORDS)
+    : records;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
 }
 
 export function getScans(): ScanRecord[] {
@@ -39,7 +50,6 @@ export function getScans(): ScanRecord[] {
 
 export function saveScan(
   result: DetectionResult,
-  imageUrl?: string,
   notes?: string
 ): ScanRecord {
   const plantName = result.plant_name || "Unknown";
@@ -55,7 +65,6 @@ export function saveScan(
     healthyArea: result.healthy_percentage,
     unhealthyArea: result.unhealthy_percentage,
     severity: result.severity,
-    imageUrl,
     notes,
   };
 
