@@ -9,12 +9,12 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  mockScans,
+  getScans,
   getPlantTypeDistribution,
   getHealthyVsUnhealthy,
   getAverageConfidence,
   getSeverityDistribution,
-} from "../data/mockScans";
+} from "../services/scanHistory";
 import { Link } from "react-router";
 import {
   BarChart3,
@@ -44,27 +44,28 @@ import {
 import { format } from "date-fns";
 
 export function Dashboard() {
-  const totalScans = mockScans.length;
-  const healthyScans = mockScans.filter((s) => s.isHealthy).length;
-  const unhealthyScans = mockScans.filter((s) => !s.isHealthy).length;
-  const avgConfidence = getAverageConfidence();
+  const scans = getScans();
+  const totalScans = scans.length;
+  const healthyScans = scans.filter((s) => s.isHealthy).length;
+  const unhealthyScans = scans.filter((s) => !s.isHealthy).length;
+  const avgConfidence = getAverageConfidence(scans);
 
-  const healthyVsUnhealthy = getHealthyVsUnhealthy();
-  const severityDistribution = getSeverityDistribution().filter((s) => s.name !== "None");
-  const plantTypeDistribution = getPlantTypeDistribution();
+  const healthyVsUnhealthy = getHealthyVsUnhealthy(scans);
+  const severityDistribution = getSeverityDistribution(scans).filter((s) => s.name !== "None");
+  const plantTypeDistribution = getPlantTypeDistribution(scans);
 
   const scansPerDay = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
     const dateStr = format(date, "MMM dd");
-    const count = mockScans.filter((scan) => {
+    const count = scans.filter((scan) => {
       const scanDate = new Date(scan.timestamp);
       return format(scanDate, "MMM dd") === dateStr;
     }).length;
     return { date: dateStr, scans: count };
   });
 
-  const recentScans = [...mockScans].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+  const recentScans = [...scans].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
   const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 

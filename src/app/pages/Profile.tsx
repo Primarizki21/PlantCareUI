@@ -6,12 +6,13 @@ import { Separator } from "../components/ui/separator";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { Badge } from "../components/ui/badge";
 import { User, Mail, MapPin, Calendar, Award, Leaf, Camera } from "lucide-react";
-import { mockScans } from "../data/mockScans";
+import { getScans } from "../services/scanHistory";
 
 export function Profile() {
-  const totalScans = mockScans.length;
-  const healthyScans = mockScans.filter((s) => s.isHealthy).length;
-  const unhealthyScans = mockScans.filter((s) => !s.isHealthy).length;
+  const scans = getScans();
+  const totalScans = scans.length;
+  const healthyScans = scans.filter((s) => s.isHealthy).length;
+  const unhealthyScans = scans.filter((s) => !s.isHealthy).length;
 
   const achievements = [
     { icon: Leaf, label: "First Scan", description: "Completed your first leaf health assessment", unlocked: true },

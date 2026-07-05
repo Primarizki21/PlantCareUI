@@ -10,7 +10,10 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
+import { saveScan } from "../../services/scanHistory";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { SeverityCard } from "./SeverityCard";
 import { PatchGrid } from "./PatchGrid";
@@ -24,6 +27,13 @@ interface LeafResultCardProps {
 
 export function LeafResultCard({ result, imageUrl }: LeafResultCardProps) {
   const isHealthy = result.health_score >= 70;
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    saveScan(result, imageUrl);
+    setSaved(true);
+    toast.success("Scan saved to history");
+  };
 
   return (
     <div className="space-y-6">
@@ -118,17 +128,20 @@ export function LeafResultCard({ result, imageUrl }: LeafResultCardProps) {
           <SeverityCard severity={result.severity} />
 
           {/* Actions */}
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <Button
+              variant="outline"
+              className="flex-1 justify-start"
+              onClick={handleSave}
+              disabled={saved}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {saved ? "Saved to History" : "Save to History"}
+            </Button>
             <Link to="/history" className="flex-1">
               <Button variant="outline" className="w-full justify-start">
-                <Download className="mr-2 h-4 w-4" />
-                Save to History
-              </Button>
-            </Link>
-            <Link to="/library" className="flex-1">
-              <Button variant="outline" className="w-full justify-start">
                 <Info className="mr-2 h-4 w-4" />
-                Plant Library
+                View History
               </Button>
             </Link>
           </div>

@@ -3,11 +3,13 @@ import { Button } from "../ui/button";
 import { AlertTriangle } from "lucide-react";
 
 interface LeafValidationCardProps {
+  message?: string;
   onUploadAnother: () => void;
   onChooseDifferent: () => void;
 }
 
 export function LeafValidationCard({
+  message,
   onUploadAnother,
   onChooseDifferent,
 }: LeafValidationCardProps) {
@@ -83,14 +85,13 @@ export function LeafValidationCard({
             <div className="flex justify-center">
               <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                 <AlertTriangle className="h-5 w-5" />
-                <span className="font-semibold text-lg">Image Validation Failed</span>
+                <span className="font-semibold text-lg">Not Leaf Detected</span>
               </div>
             </div>
 
-            {/* Message */}
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              The uploaded image does not appear to contain a plant leaf. Please
-              upload a clear image of a single leaf for analysis.
+              {message ??
+                "The uploaded image is not a valid leaf image."}
             </p>
           </div>
 

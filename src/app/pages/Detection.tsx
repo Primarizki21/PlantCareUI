@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { CheckCircle2, Info, Activity } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { CheckCircle2, Info, Activity, AlertCircle } from "lucide-react";
 import { DetectionUpload } from "../components/detection/DetectionUpload";
 import { DetectionLoading } from "../components/detection/DetectionLoading";
 import { LeafValidationCard } from "../components/detection/LeafValidationCard";
@@ -8,7 +9,7 @@ import { LeafResultCard } from "../components/detection/LeafResultCard";
 import * as detectionApi from "../services/detectionApi";
 import type { DetectionResult } from "../services/detectionApi";
 
-type PageState = "idle" | "analyzing" | "invalid_leaf" | "result";
+type PageState = "idle" | "analyzing" | "invalid_leaf" | "result" | "error";
 
 export function Detection() {
   const [selectedPlant, setSelectedPlant] = useState<string>("Other");
@@ -16,12 +17,10 @@ export function Detection() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [pageState, setPageState] = useState<PageState>("idle");
   const [result, setResult] = useState<DetectionResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [notLeafMessage, setNotLeafMessage] = useState<string | null>(null);
 
-  // Callback ref — DetectionUpload stores its file picker trigger here so the
-  // parent can open the picker from outside (e.g. after leaf validation fails)
   const triggerFilePicker = useRef<(() => void) | null>(null);
-
-  // ── File handling ─────────────────────────────────────────────────────────
 
   const handleFile = useCallback((file: File) => {
     if (file && file.type.startsWith("image/")) {
@@ -29,68 +28,78 @@ export function Detection() {
       reader.onload = (e) => {
         setUploadedImage(e.target?.result as string);
         setResult(null);
+        setErrorMessage(null);
+        setNotLeafMessage(null);
         setPageState("idle");
       };
       reader.readAsDataURL(file);
     }
   }, []);
 
-  // ── Analysis ──────────────────────────────────────────────────────────────
-
   const analyzeImage = async () => {
     if (!uploadedImage) return;
 
     setPageState("analyzing");
     setResult(null);
+    setErrorMessage(null);
+    setNotLeafMessage(null);
 
     const plantName =
       selectedPlant === "Other"
         ? customPlantName.trim() || "Unknown"
         : selectedPlant;
 
-    const data = await detectionApi.predict(uploadedImage, plantName);
+    try {
+      const data = await detectionApi.predict(uploadedImage, plantName);
 
-    if (!data.is_leaf) {
-      setPageState("invalid_leaf");
-    } else {
-      setResult(data);
-      setPageState("result");
+      if (!data.is_leaf) {
+        setNotLeafMessage(
+          data.message ??
+            "The uploaded image is not a valid leaf image."
+        );
+        setPageState("invalid_leaf");
+      } else {
+        setResult(data);
+        setPageState("result");
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to analyze the image. Please try again.";
+      setErrorMessage(message);
+      setPageState("error");
     }
   };
-
-  // ── Reset helpers ─────────────────────────────────────────────────────────
 
   const resetDetection = () => {
     setUploadedImage(null);
     setResult(null);
     setSelectedPlant("Other");
     setCustomPlantName("");
+    setErrorMessage(null);
+    setNotLeafMessage(null);
     setPageState("idle");
   };
 
-  // When the leaf validation fails, the user may want to upload a brand-new
-  // image (clear everything) or just pick a different file (keep the form).
   const handleUploadAnother = () => {
     resetDetection();
   };
 
   const handleChooseDifferent = () => {
-    // Keep plant selection; only clear the image
     setUploadedImage(null);
     setResult(null);
+    setErrorMessage(null);
+    setNotLeafMessage(null);
     setPageState("idle");
-    // Open the file picker that lives inside DetectionUpload
     triggerFilePicker.current?.();
   };
-
-  // ── Derived flags ─────────────────────────────────────────────────────────
 
   const isAnalyzing = pageState === "analyzing";
   const hasResult = pageState === "result";
 
   return (
     <div className="container px-4 py-8 max-w-7xl">
-      {/* Page heading */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Leaf Health Assessment</h1>
         <p className="text-muted-foreground">
@@ -99,9 +108,7 @@ export function Detection() {
         </p>
       </div>
 
-      {/* Two-column layout — stacks on mobile/tablet */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* ── Left: Upload Panel ── */}
         <div className="space-y-6">
           <DetectionUpload
             selectedPlant={selectedPlant}
@@ -114,10 +121,11 @@ export function Detection() {
             onFile={handleFile}
             onAnalyze={analyzeImage}
             onReset={resetDetection}
-            onRegisterTrigger={(fn) => { triggerFilePicker.current = fn; }}
+            onRegisterTrigger={(fn) => {
+              triggerFilePicker.current = fn;
+            }}
           />
 
-          {/* Tips Card — preserved from original */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -148,32 +156,50 @@ export function Detection() {
           </Card>
         </div>
 
-        {/* ── Right: Results Panel ── */}
         <div>
-          {/* Loading state */}
           {pageState === "analyzing" && <DetectionLoading />}
 
-          {/* Leaf validation failed */}
           {pageState === "invalid_leaf" && (
             <LeafValidationCard
+              message={notLeafMessage ?? undefined}
               onUploadAnother={handleUploadAnother}
               onChooseDifferent={handleChooseDifferent}
             />
           )}
 
-          {/* Analysis result */}
+          {pageState === "error" && (
+            <Card className="border-destructive/50 border-2">
+              <CardContent className="pt-6">
+                <div className="text-center py-12 space-y-4">
+                  <AlertCircle className="h-12 w-12 mx-auto text-destructive opacity-80" />
+                  <div>
+                    <p className="font-semibold text-lg mb-1">Analysis Failed</p>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                      {errorMessage ??
+                        "Could not reach the analysis server. Make sure the backend is running on port 8000."}
+                    </p>
+                  </div>
+                  <Button onClick={analyzeImage} disabled={!uploadedImage}>
+                    Try Again
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {pageState === "result" && result && (
             <LeafResultCard result={result} imageUrl={uploadedImage!} />
           )}
 
-          {/* Idle / no image yet */}
           {pageState === "idle" && (
             <Card className="border-dashed">
               <CardContent className="pt-6">
                 <div className="text-center py-12 text-muted-foreground">
                   <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="font-medium mb-1">No analysis yet</p>
-                  <p className="text-sm">Upload a leaf image to see the assessment result</p>
+                  <p className="text-sm">
+                    Upload a leaf image to see the assessment result
+                  </p>
                 </div>
               </CardContent>
             </Card>

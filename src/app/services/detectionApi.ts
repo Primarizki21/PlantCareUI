@@ -2,6 +2,17 @@ import { API_URL } from "../config/api";
 import type { DetectionResult } from "../types/detection";
 
 // Helper to convert base64 data URLs to Blobs for multipart/form-data upload
+async function parseErrorResponse(response: Response): Promise<string> {
+  const errorText = await response.text();
+  try {
+    const parsed = JSON.parse(errorText) as { detail?: string };
+    if (parsed.detail) return parsed.detail;
+  } catch {
+    // not JSON
+  }
+  return errorText || "Request failed.";
+}
+
 function dataURLtoBlob(dataurl: string): Blob {
   const arr = dataurl.split(",");
   const mimeMatch = arr[0].match(/:(.*?);/);
@@ -40,8 +51,7 @@ export async function predict(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Failed to analyze leaf health on the backend.");
+    throw new Error(await parseErrorResponse(response));
   }
 
   return response.json() as Promise<DetectionResult>;
@@ -68,8 +78,7 @@ export async function validateLeaf(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Failed to validate image.");
+    throw new Error(await parseErrorResponse(response));
   }
 
   return response.json() as Promise<{ is_leaf: boolean; confidence: number; message: string }>;

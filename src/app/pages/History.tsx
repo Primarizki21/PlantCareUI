@@ -18,7 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { mockScans } from "../data/mockScans";
+import {
+  getScans,
+  getAverageConfidence,
+} from "../services/scanHistory";
 import {
   Search,
   Download,
@@ -36,7 +39,9 @@ export function History() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPlant, setFilterPlant] = useState<string>("all");
 
-  const filteredScans = mockScans.filter((scan) => {
+  const scans = getScans();
+
+  const filteredScans = scans.filter((scan) => {
     const matchesSearch =
       scan.plantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       scan.plantType.toLowerCase().includes(searchTerm.toLowerCase());
@@ -51,7 +56,7 @@ export function History() {
     return matchesSearch && matchesStatus && matchesPlant;
   });
 
-  const plantTypes = Array.from(new Set(mockScans.map((s) => s.plantType))).sort();
+  const plantTypes = Array.from(new Set(scans.map((s) => s.plantType))).sort();
 
   const getSeverityBadge = (severity: string) => {
     const colors: { [key: string]: string } = {
@@ -67,26 +72,28 @@ export function History() {
   const stats = [
     {
       label: "Total Scans",
-      value: mockScans.length,
+      value: scans.length,
       icon: Calendar,
       color: "text-blue-600",
     },
     {
       label: "Healthy Leaves",
-      value: mockScans.filter((s) => s.isHealthy).length,
+      value: scans.filter((s) => s.isHealthy).length,
       icon: CheckCircle2,
       color: "text-green-600",
     },
     {
       label: "Unhealthy Leaves",
-      value: mockScans.filter((s) => !s.isHealthy).length,
+      value: scans.filter((s) => !s.isHealthy).length,
       icon: AlertCircle,
       color: "text-orange-600",
     },
     {
       label: "Avg Confidence",
       value:
-        (mockScans.reduce((sum, s) => sum + s.confidence, 0) / mockScans.length).toFixed(1) + "%",
+        scans.length > 0
+          ? getAverageConfidence(scans) + "%"
+          : "—",
       icon: TrendingUp,
       color: "text-purple-600",
     },

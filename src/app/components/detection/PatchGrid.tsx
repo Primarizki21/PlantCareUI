@@ -24,81 +24,78 @@ export function PatchGrid({ imageUrl, patches }: PatchGridProps) {
 
   if (patches.length === 0) return null;
 
-  // We enforce a strict 8x8 grid of 64 patches
   const cols = 8;
   const rows = 8;
 
-  // Build lookup map: "col,row" → Patch
   const patchMap = new Map<string, Patch>(
     patches.map((p) => [`${p.x},${p.y}`, p])
   );
 
   return (
     <div className="space-y-3">
-      {/* Image + patch overlay */}
-      <div className="relative w-full rounded-lg overflow-hidden border border-border">
-        {/* Base image */}
+      <div className="relative w-full max-w-full rounded-lg overflow-hidden border border-border">
         <img
           src={imageUrl}
           alt="Leaf with patch overlay"
-          className="w-full object-cover block"
-          style={{ maxHeight: "380px" }}
+          className="w-full h-auto block max-h-[min(380px,70vh)] object-contain mx-auto"
         />
 
-        {/* Patch grid overlay — absolute, covers the image */}
         <div
-          className="absolute inset-0"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-          }}
+          className="absolute inset-0 pointer-events-none"
+          aria-hidden
         >
-          {Array.from({ length: rows }).map((_, row) =>
-            Array.from({ length: cols }).map((_, col) => {
-              const patch = patchMap.get(`${col},${row}`);
-              if (!patch) {
-                return (
-                  <div
-                    key={`${col}-${row}`}
-                    className="border border-white/10"
-                  />
-                );
-              }
-
-              const isFocused = focusedId === patch.id;
-
-              return (
-                <Tooltip key={patch.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label={`Patch ${patch.id}`}
-                      className={`
-                        border transition-all duration-150 cursor-pointer outline-none
-                        ${getPatchColor(patch.status)}
-                        ${isFocused ? "ring-2 ring-white ring-inset" : ""}
-                      `}
-                      onFocus={() => setFocusedId(patch.id)}
-                      onBlur={() => setFocusedId(null)}
-                      onClick={() =>
-                        setFocusedId((prev) =>
-                          prev === patch.id ? null : patch.id
-                        )
-                      }
+          <div
+            className="grid h-full w-full pointer-events-auto"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridTemplateRows: `repeat(${rows}, 1fr)`,
+            }}
+          >
+            {Array.from({ length: rows }).map((_, row) =>
+              Array.from({ length: cols }).map((_, col) => {
+                const patch = patchMap.get(`${col},${row}`);
+                if (!patch) {
+                  return (
+                    <div
+                      key={`${col}-${row}`}
+                      className="border border-white/10"
                     />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" sideOffset={4}>
-                    <PatchTooltipContent patch={patch} />
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })
-          )}
+                  );
+                }
+
+                const isFocused = focusedId === patch.id;
+
+                return (
+                  <Tooltip key={patch.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={`Patch ${patch.id}`}
+                        className={`
+                          border transition-all duration-150 cursor-pointer outline-none
+                          ${getPatchColor(patch.status)}
+                          ${isFocused ? "ring-2 ring-white ring-inset" : ""}
+                        `}
+                        onFocus={() => setFocusedId(patch.id)}
+                        onBlur={() => setFocusedId(null)}
+                        onClick={() =>
+                          setFocusedId((prev) =>
+                            prev === patch.id ? null : patch.id
+                          )
+                        }
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={4}>
+                      <PatchTooltipContent patch={patch} />
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-sm bg-green-500/60 inline-block" />

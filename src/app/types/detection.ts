@@ -29,4 +29,5 @@ export interface DetectionResult {
   severity: Severity;
   patches: Patch[];
   patch_summary: PatchSummaryData;
+  message?: string;
 }

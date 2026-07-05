@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { Button } from "../ui/button";
-import { Leaf, Menu, Moon, Sun, BarChart3, History, ScanLine } from "lucide-react";
+import { Leaf, Menu, Moon, Sun, BarChart3, History, ScanLine, BookOpen } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { useState } from "react";
@@ -13,6 +13,7 @@ export function Navbar() {
   const navItems = [
     { path: "/detection", label: "Detect", icon: ScanLine },
     { path: "/history", label: "History", icon: History },
+    { path: "/library", label: "Plant Library", icon: BookOpen },
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
   ];
 

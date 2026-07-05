@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router";
 import { Navbar } from "../navigation/Navbar";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "../ui/sonner";
 
 export function RootLayout() {
   const location = useLocation();
@@ -11,6 +12,7 @@ export function RootLayout() {
       <div className="min-h-screen bg-background">
         {!isAuthPage && <Navbar />}
         <Outlet />
+        <Toaster />
       </div>
     </ThemeProvider>
   );
