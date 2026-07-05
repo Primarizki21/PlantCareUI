@@ -3,10 +3,10 @@ import io
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from fastapi.responses import Response
 from PIL import Image
-from models.background_remover import remover
-from models.leaf_validator import validator
-from models.patch_classifier import classifier
-from schemas import DetectionResult, PatchSummary, LeafValidationResult, Patch
+from backend.models.background_remover import remover
+from backend.models.leaf_validator import validator
+from backend.models.patch_classifier import classifier
+from backend.schemas import DetectionResult, PatchSummary, LeafValidationResult, Patch
 
 router = APIRouter()
 

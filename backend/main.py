@@ -2,10 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from models.background_remover import remover
-from models.leaf_validator import validator
-from models.patch_classifier import classifier
-from routers import predict
+from backend.models.background_remover import remover
+from backend.models.leaf_validator import validator
+from backend.models.patch_classifier import classifier
+from backend.routers import predict
 
 
 @asynccontextmanager
