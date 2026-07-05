@@ -4,7 +4,7 @@
     "api/index.py": {
       "memory": 1024,
       "maxDuration": 60,
-      "excludeFiles": "{backend/__pycache__/**,backend/**/__pycache__/**,tests/**,*.test.py,__tests__/**,fixtures/**,sample-data/**,docs/**,*.md}"
+      "excludeFiles": "{backend/**/__pycache__/**,tests/**,*.test.py,__tests__/**,fixtures/**,sample-data/**,docs/**,mobilenetv3_small/exported/model_int8.onnx,mobilenetv3_small/eval/**,mobilenetv3_small/logs/**,**/*.png,**/*.jpg,**/*.csv}"
     }
   }
 }

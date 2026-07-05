@@ -1,1 +1,6 @@
--r backend/requirements.txt
+fastapi
+uvicorn
+python-multipart
+pillow<11
+numpy<2
+onnxruntime
