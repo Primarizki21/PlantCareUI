@@ -26,6 +26,7 @@ class DetectionResult(BaseModel):
     severity: Literal["None", "Low", "Medium", "High", "Critical"]
     patches: List[Patch]
     patch_summary: PatchSummary
+    processed_image_base64: Optional[str] = None
     message: Optional[str] = None
 
 class LeafValidationResult(BaseModel):

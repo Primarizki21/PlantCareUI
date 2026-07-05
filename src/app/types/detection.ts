@@ -29,5 +29,6 @@ export interface DetectionResult {
   severity: Severity;
   patches: Patch[];
   patch_summary: PatchSummaryData;
+  processed_image_base64?: string; // raw base64, prefix with "data:image/png;base64," to use as src
   message?: string;
 }

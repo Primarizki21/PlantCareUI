@@ -1,6 +1,9 @@
+import base64
 import io
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi.responses import Response
 from PIL import Image
+from models.background_remover import remover
 from models.leaf_validator import validator
 from models.patch_classifier import classifier
 from schemas import DetectionResult, PatchSummary, LeafValidationResult, Patch
@@ -20,6 +23,17 @@ def open_upload_image(contents: bytes) -> Image.Image:
     except Exception as exc:
         raise ValueError("Invalid or corrupted image file.") from exc
     return image
+
+def flatten_rgba_to_rgb(rgba_image: Image.Image, bg=(255, 255, 255)) -> Image.Image:
+    """Composite an RGBA image onto a solid background to get RGB."""
+    background = Image.new("RGB", rgba_image.size, bg)
+    background.paste(rgba_image, mask=rgba_image.split()[3])
+    return background
+
+def pil_to_base64_png(image: Image.Image) -> str:
+    buf = io.BytesIO()
+    image.save(buf, format="PNG", optimize=True)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
 
 def calculate_severity(unhealthy_pct: float) -> str:
     if unhealthy_pct <= 2.0:
@@ -70,10 +84,19 @@ async def predict_leaf_health(
                 average_confidence=0.0
             )
         )
-        
-    # Step 2: Crop into 8x8 patches and classify
+
+    # Step 2: Remove background so the patch classifier sees the leaf only
     try:
-        patches_data = classifier.classify_patches(image)
+        leaf_rgba = remover.remove(image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Background removal failed: {str(e)}")
+
+    classifier_input = flatten_rgba_to_rgb(leaf_rgba)
+    processed_b64 = pil_to_base64_png(leaf_rgba)
+
+    # Step 3: Crop into 8x8 patches and classify
+    try:
+        patches_data = classifier.classify_patches(classifier_input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Patch classification failed: {str(e)}")
         
@@ -117,7 +140,8 @@ async def predict_leaf_health(
         unhealthy_percentage=round(unhealthy_area, 2),
         severity=severity,
         patches=patches,
-        patch_summary=patch_summary
+        patch_summary=patch_summary,
+        processed_image_base64=processed_b64
     )
 
 @router.post("/validate-leaf", response_model=LeafValidationResult)
@@ -127,12 +151,12 @@ async def validate_leaf(file: UploadFile = File(...)):
         image = open_upload_image(contents)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-        
+
     try:
         validation = validator.predict(image)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Leaf validation failed: {str(e)}")
-        
+
     message = (
         "The uploaded image appears to contain a plant leaf."
         if validation["is_leaf"]
@@ -144,6 +168,31 @@ async def validate_leaf(file: UploadFile = File(...)):
         confidence=round(validation["confidence"] * 100, 2),
         message=message
     )
+
+@router.post("/remove-background", responses={200: {"content": {"image/png": {}}}})
+async def remove_background(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        image = open_upload_image(contents)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        validation = validator.predict(image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Leaf validation failed: {str(e)}")
+
+    if not validation["is_leaf"]:
+        raise HTTPException(status_code=400, detail=NOT_LEAF_MESSAGE)
+
+    try:
+        leaf_rgba = remover.remove(image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Background removal failed: {str(e)}")
+
+    buf = io.BytesIO()
+    leaf_rgba.save(buf, format="PNG", optimize=True)
+    return Response(content=buf.getvalue(), media_type="image/png")
 
 @router.get("/health")
 async def health_check():

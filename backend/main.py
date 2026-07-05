@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from models.background_remover import remover
 from models.leaf_validator import validator
 from models.patch_classifier import classifier
 from routers import predict
@@ -12,6 +13,7 @@ async def lifespan(_: FastAPI):
     """Load ML models once at startup — not per request."""
     validator.load_model()
     classifier.load_model()
+    remover.load_model()
     yield
 
 
