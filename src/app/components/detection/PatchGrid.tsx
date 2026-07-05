@@ -33,35 +33,37 @@ export function PatchGrid({ imageUrl, patches }: PatchGridProps) {
 
   return (
     <div className="space-y-3">
-      <div className="relative w-full max-w-full rounded-lg overflow-hidden border border-border">
-        <img
-          src={imageUrl}
-          alt="Leaf with patch overlay"
-          className="w-full h-auto block max-h-[min(380px,70vh)] object-contain mx-auto"
-        />
+      <div className="flex justify-center">
+        <div className="relative inline-block max-h-[min(380px,70vh)] rounded-lg overflow-hidden border border-border bg-black">
+          <img
+            src={imageUrl}
+            alt="Leaf with patch overlay"
+            className="block max-w-full max-h-[min(380px,70vh)] w-auto h-auto"
+          />
 
-        <div
-          className="absolute inset-0 pointer-events-none"
-          aria-hidden
-        >
           <div
-            className="grid h-full w-full pointer-events-auto"
-            style={{
-              gridTemplateColumns: `repeat(${cols}, 1fr)`,
-              gridTemplateRows: `repeat(${rows}, 1fr)`,
-            }}
+            className="absolute inset-0 pointer-events-none"
+            aria-hidden
           >
-            {Array.from({ length: rows }).map((_, row) =>
-              Array.from({ length: cols }).map((_, col) => {
-                const patch = patchMap.get(`${col},${row}`);
-                if (!patch) {
-                  return (
-                    <div
-                      key={`${col}-${row}`}
-                      className="border border-white/10"
-                    />
-                  );
-                }
+            <div
+              className="grid h-full w-full pointer-events-auto"
+              style={{
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridTemplateRows: `repeat(${rows}, 1fr)`,
+              }}
+            >
+              {Array.from({ length: rows }).map((_, row) =>
+                Array.from({ length: cols }).map((_, col) => {
+                  const patch = patchMap.get(`${col},${row}`);
+                  if (!patch) {
+                    return (
+                      <div
+                        key={`${col}-${row}`}
+                        className="border border-dashed border-white/30 bg-white/[0.03]"
+                        aria-label="Skipped patch (no leaf content)"
+                      />
+                    );
+                  }
 
                 const isFocused = focusedId === patch.id;
 
@@ -94,6 +96,7 @@ export function PatchGrid({ imageUrl, patches }: PatchGridProps) {
             )}
           </div>
         </div>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -104,6 +107,10 @@ export function PatchGrid({ imageUrl, patches }: PatchGridProps) {
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-sm bg-red-500/65 inline-block" />
           Unhealthy Patch
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded-sm border border-dashed border-white/40 bg-white/[0.03] inline-block" />
+          Skipped (no leaf)
         </span>
       </div>
     </div>
