@@ -20,3 +20,8 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Training artifacts (kept out of deploys and the repo going forward)
+mobilenetv3_small/checkpoints/
+mobilenetv3_small/eval/
+mobilenetv3_small/logs/
