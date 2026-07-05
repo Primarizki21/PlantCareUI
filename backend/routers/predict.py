@@ -36,13 +36,13 @@ def flatten_to_black(rgba: Image.Image) -> Image.Image:
     return bg
 
 def calculate_severity(unhealthy_pct: float) -> str:
-    if unhealthy_pct <= 2.0:
+    if unhealthy_pct <= 3.0:
         return "None"
     elif unhealthy_pct <= 15.0:
         return "Low"
-    elif unhealthy_pct <= 35.0:
+    elif unhealthy_pct <= 40.0:
         return "Medium"
-    elif unhealthy_pct <= 60.0:
+    elif unhealthy_pct <= 70.0:
         return "High"
     else:
         return "Critical"

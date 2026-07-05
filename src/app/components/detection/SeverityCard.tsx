@@ -4,29 +4,24 @@ import type { Severity } from "../../services/detectionApi";
 
 interface SeverityCardProps {
   severity: Severity;
+  unhealthyPercentage: number;
 }
 
 function getSeverityColor(severity: Severity): string {
   switch (severity) {
-    case "None":   return "bg-green-500";
-    case "Low":    return "bg-yellow-500";
-    case "Medium": return "bg-orange-500";
-    case "High":   return "bg-red-500";
-    default:       return "bg-gray-500";
+    case "None":     return "bg-green-500";
+    case "Low":      return "bg-yellow-500";
+    case "Medium":   return "bg-orange-500";
+    case "High":     return "bg-red-500";
+    case "Critical": return "bg-red-700";
   }
 }
 
-function getSeverityProgress(severity: Severity): number {
-  switch (severity) {
-    case "None":   return 0;
-    case "Low":    return 25;
-    case "Medium": return 50;
-    case "High":   return 100;
-    default:       return 0;
-  }
+function getSeverityProgress(unhealthyPercentage: number): number {
+  return Math.min(100, Math.max(0, unhealthyPercentage));
 }
 
-export function SeverityCard({ severity }: SeverityCardProps) {
+export function SeverityCard({ severity, unhealthyPercentage }: SeverityCardProps) {
   return (
     <div className="p-4 border rounded-lg">
       <div className="flex items-center justify-between mb-2">
@@ -35,7 +30,7 @@ export function SeverityCard({ severity }: SeverityCardProps) {
           {severity}
         </Badge>
       </div>
-      <Progress value={getSeverityProgress(severity)} className="h-2" />
+      <Progress value={getSeverityProgress(unhealthyPercentage)} className="h-2" />
     </div>
   );
 }

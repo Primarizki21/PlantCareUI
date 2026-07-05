@@ -125,7 +125,7 @@ export function LeafResultCard({ result, imageUrl }: LeafResultCardProps) {
           </div>
 
           {/* Severity */}
-          <SeverityCard severity={result.severity} />
+          <SeverityCard severity={result.severity} unhealthyPercentage={result.unhealthy_percentage} />
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2 pt-1">
