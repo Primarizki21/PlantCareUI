@@ -8,6 +8,7 @@ import { LeafValidationCard } from "../components/detection/LeafValidationCard";
 import { LeafResultCard } from "../components/detection/LeafResultCard";
 import * as detectionApi from "../services/detectionApi";
 import type { DetectionResult } from "../services/detectionApi";
+import { compressImage } from "../services/imageCompress";
 
 type PageState = "idle" | "analyzing" | "invalid_leaf" | "result" | "error";
 
@@ -22,18 +23,18 @@ export function Detection() {
 
   const triggerFilePicker = useRef<(() => void) | null>(null);
 
-  const handleFile = useCallback((file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
-        setResult(null);
-        setErrorMessage(null);
-        setNotLeafMessage(null);
-        setPageState("idle");
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleFile = useCallback(async (file: File) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    const compressed = await compressImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedImage(e.target?.result as string);
+      setResult(null);
+      setErrorMessage(null);
+      setNotLeafMessage(null);
+      setPageState("idle");
+    };
+    reader.readAsDataURL(compressed);
   }, []);
 
   const analyzeImage = async () => {
